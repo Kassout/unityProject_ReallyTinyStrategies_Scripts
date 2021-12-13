@@ -15,7 +15,7 @@ public class FaceCamera : MonoBehaviour
     /// </summary>
     private void Start()
     {
-        if (Camera.main != null)
+        if (Camera.main is not null)
         {
             _mainCameraTransform = Camera.main.transform;
         }

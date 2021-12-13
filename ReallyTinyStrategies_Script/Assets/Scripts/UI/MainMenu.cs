@@ -1,4 +1,6 @@
+using kcp2k;
 using Mirror;
+using Mirror.FizzySteam;
 using Steamworks;
 using UnityEngine;
 
@@ -39,12 +41,15 @@ public class MainMenu : MonoBehaviour
     {
         if (!useSteam)
         {
-            return;
+            lobbyCreated = Callback<LobbyCreated_t>.Create(OnLobbyCreated);
+            gameLobbyJoinRequested = Callback<GameLobbyJoinRequested_t>.Create(OnGameLobbyJoinRequested);
+            lobbyEntered = Callback<LobbyEnter_t>.Create(OnLobbyEntered);
         }
-
-        lobbyCreated = Callback<LobbyCreated_t>.Create(OnLobbyCreated);
-        gameLobbyJoinRequested = Callback<GameLobbyJoinRequested_t>.Create(OnGameLobbyJoinRequested);
-        lobbyEntered = Callback<LobbyEnter_t>.Create(OnLobbyEntered);
+        else
+        {
+            NetworkManager.singleton.GetComponent<KcpTransport>().enabled = true;
+            NetworkManager.singleton.GetComponent<FizzySteamworks>().enabled = false;
+        }
     }
     
     /// <summary>
