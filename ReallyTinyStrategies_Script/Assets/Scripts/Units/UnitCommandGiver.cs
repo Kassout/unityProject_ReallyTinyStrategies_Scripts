@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -45,11 +46,17 @@ public class UnitCommandGiver : MonoBehaviour
     /// </summary>
     private void Update()
     {
+        // Wait for mouse right button down
         if (!Mouse.current.rightButton.wasPressedThisFrame)
         {
             return;
         }
 
+        if (!unitSelectionHandler.selectedUnits.Any())
+        {
+            return; 
+        }
+        
         Ray ray = _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
         
         if (!Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layerMask))

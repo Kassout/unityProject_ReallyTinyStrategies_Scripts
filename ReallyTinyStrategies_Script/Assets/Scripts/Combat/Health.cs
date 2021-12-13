@@ -10,7 +10,7 @@ public class Health : NetworkBehaviour
     /// <summary>
     /// Instance variable <c>maxHealth</c> represents the maximum quantity of health own by the unit instance.
     /// </summary>
-    [SerializeField] private int maxHealth = 100;
+    private int _maxHealth = 100;
 
     /// <summary>
     /// Instance variable <c>currentHealth</c> represents the current quantity of health own by the unit instance.
@@ -29,6 +29,20 @@ public class Health : NetworkBehaviour
     /// </summary>
     public event Action<int, int> ClientOnHealthUpdated;
 
+    /// <summary>
+    /// This function is called when the script instance is being loaded.
+    /// </summary>
+    private void Awake()
+    {
+        if (TryGetComponent(out Building building))
+        {
+            _maxHealth = building.buildingData.maxHealth;
+        } else if (TryGetComponent(out Unit unit))
+        {
+            _maxHealth = unit.unitData.maxHealth;
+        }
+    }
+
     #region Server
 
     /// <summary>
@@ -36,7 +50,7 @@ public class Health : NetworkBehaviour
     /// </summary>
     public override void OnStartServer()
     {
-        _currentHealth = maxHealth;
+        _currentHealth = _maxHealth;
         
         UnitBase.ServerOnPlayerLose += ServerHandlePlayerLose;
     }
@@ -97,7 +111,7 @@ public class Health : NetworkBehaviour
     /// <param name="newHealth">An integer value representing the current health value of the unit.</param>
     private void HandleHealthUpdated(int oldHealth, int newHealth)
     {
-        ClientOnHealthUpdated?.Invoke(newHealth, maxHealth);
+        ClientOnHealthUpdated?.Invoke(newHealth, _maxHealth);
     }
 
     #endregion

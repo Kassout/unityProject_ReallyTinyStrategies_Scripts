@@ -39,7 +39,7 @@ public class MainMenu : MonoBehaviour
     /// </summary>
     private void Start()
     {
-        if (!useSteam)
+        if (useSteam)
         {
             lobbyCreated = Callback<LobbyCreated_t>.Create(OnLobbyCreated);
             gameLobbyJoinRequested = Callback<GameLobbyJoinRequested_t>.Create(OnGameLobbyJoinRequested);

@@ -8,17 +8,18 @@ using Random = UnityEngine.Random;
 /// <summary>
 /// Class <c>UnitSpawner</c> is a Mirror component script used to manage the unit spawning behaviour of the game.
 /// </summary>
+[RequireComponent(typeof(Transform), typeof(Building))]
 public class UnitSpawner : NetworkBehaviour, IPointerClickHandler
 {
     /// <summary>
     /// Instance variable <c>health</c> is a Mirror <c>Health</c> component representing the health manager of the unit spawner building.
     /// </summary>
-    [SerializeField] private Health health;
+    private Health _health;
     
     /// <summary>
     /// Instance variable <c>unitPrefab</c> is a Unity <c>GameObject</c> component representing the unit prefabricated object to be instantiated by the unit spawner.
     /// </summary>
-    [SerializeField] private Unit unitPrefab;
+    private Unit _unitPrefab;
     
     /// <summary>
     /// Instance variable <c>unitSpawnPoint</c> is a Unity <c>Transform</c> component representing the spawn position of the unit to instantiate.
@@ -38,17 +39,17 @@ public class UnitSpawner : NetworkBehaviour, IPointerClickHandler
     /// <summary>
     /// Instance variable <c>maxUnitQueue</c> represents the maximum size value of unit to be stored in the unit spawner queue.
     /// </summary>
-    [SerializeField] private int maxUnitQueue = 5;
+    private int _maxUnitQueue;
     
     /// <summary>
     /// Instance variable <c>spawnMoveRange</c> represents the range value of unit movements around the spawn point of the unit spawner.
     /// </summary>
-    [SerializeField] private float spawnMoveRange = 7.0f;
+    private float _spawnMoveRange;
     
     /// <summary>
     /// Instance variable <c>unitSpawnDuration</c> represents the duration value of unit to spawn on unit spawner.
     /// </summary>
-    [SerializeField] private float unitSpawnDuration = 5.0f;
+    private float _unitSpawnDuration;
 
     /// <summary>
     /// Instance variable <c>queuedUnits</c> represents the number of units in the queue of the unit spawner.
@@ -66,6 +67,21 @@ public class UnitSpawner : NetworkBehaviour, IPointerClickHandler
     /// Instance variable <c>progressImageVelocity</c> represents the progression velocity value of the unit spawner to update the progress image.
     /// </summary>
     private float _progressImageVelocity;
+
+    /// <summary>
+    /// This function is called when the script instance is being loaded.
+    /// </summary>
+    private void Awake()
+    {
+        _health = GetComponent<Health>();
+
+        BuildingData buildingData = GetComponent<Building>().buildingData;
+
+        _unitPrefab = buildingData.unitPrefab;
+        _maxUnitQueue = buildingData.maxUnitQueue;
+        _spawnMoveRange = buildingData.spawnMoveRange;
+        _unitSpawnDuration = buildingData.unitSpawnDuration;
+    }
 
     /// <summary>
     /// This function is called every frame, if the MonoBehaviour is enabled.
@@ -90,7 +106,7 @@ public class UnitSpawner : NetworkBehaviour, IPointerClickHandler
     /// </summary>
     public override void OnStartServer()
     {
-        health.ServerOnDeath += ServerHandleDeath;
+        _health.ServerOnDeath += ServerHandleDeath;
     }
 
     /// <summary>
@@ -98,7 +114,7 @@ public class UnitSpawner : NetworkBehaviour, IPointerClickHandler
     /// </summary>
     public override void OnStopServer()
     {
-        health.ServerOnDeath -= ServerHandleDeath;
+        _health.ServerOnDeath -= ServerHandleDeath;
     }
 
     /// <summary>
@@ -114,16 +130,16 @@ public class UnitSpawner : NetworkBehaviour, IPointerClickHandler
 
         _unitTimer += Time.deltaTime;
         
-        if (_unitTimer < unitSpawnDuration)
+        if (_unitTimer < _unitSpawnDuration)
         {
             return;
         }
         
-        GameObject unitInstance = Instantiate(unitPrefab.gameObject, unitSpawnPoint.position, unitSpawnPoint.rotation);
+        GameObject unitInstance = Instantiate(_unitPrefab.gameObject, unitSpawnPoint.position, unitSpawnPoint.rotation);
         
         NetworkServer.Spawn(unitInstance, connectionToClient);
 
-        Vector3 spawnOffset = Random.insideUnitSphere * spawnMoveRange;
+        Vector3 spawnOffset = Random.insideUnitSphere * _spawnMoveRange;
         spawnOffset.y = unitSpawnPoint.position.y;
 
         UnitMovement unitMovement = unitInstance.GetComponent<UnitMovement>();
@@ -148,21 +164,21 @@ public class UnitSpawner : NetworkBehaviour, IPointerClickHandler
     [Command] // Call this from a client to run this function on the server.
     private void CmdSpawnUnit()
     {
-        if (_queuedUnits == maxUnitQueue)
+        if (_queuedUnits == _maxUnitQueue)
         {
             return;
         }
 
         RTSPlayer player = connectionToClient.identity.GetComponent<RTSPlayer>();
 
-        if (player.GetResources() < unitPrefab.GetResourceCost())
+        if (player.GetResources() < _unitPrefab.GetResourceCost())
         {
             return;
         }
 
         _queuedUnits++;
         
-        player.SetResources(player.GetResources() - unitPrefab.GetResourceCost());
+        player.SetResources(player.GetResources() - _unitPrefab.GetResourceCost());
     }
 
     #endregion
@@ -174,7 +190,7 @@ public class UnitSpawner : NetworkBehaviour, IPointerClickHandler
     /// </summary>
     private void UpdateTimerDisplay()
     {
-        float newProgress = _unitTimer / unitSpawnDuration;
+        float newProgress = _unitTimer / _unitSpawnDuration;
 
         if (newProgress < unitProgressImage.fillAmount)
         {
