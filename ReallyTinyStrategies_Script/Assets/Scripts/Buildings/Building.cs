@@ -5,27 +5,13 @@ using UnityEngine;
 /// <summary>
 /// Class <c>Building</c> is a Mirror component script used to manage the general player building object behaviour.
 /// </summary>
+[RequireComponent(typeof(Health))]
 public class Building : NetworkBehaviour
 {
     /// <summary>
-    /// Instance variable <c>buildingPreview</c> is a Unity <c>GameObject</c> object representing the model preview of the building.
+    /// Instance variable <c>buildingData</c> is a Unity <c>BuildingData</c> scriptable object containing the different building data.
     /// </summary>
-    [SerializeField] private GameObject buildingPreview;
-    
-    /// <summary>
-    /// Instance variable <c>icon</c> is a Unity <c>Sprite</c> component representing the UI icon of the building.
-    /// </summary>
-    [SerializeField] private Sprite icon;
-    
-    /// <summary>
-    /// Instance variable <c>id</c> represents the identifier value of the building.
-    /// </summary>
-    [SerializeField] private int id = -1;
-    
-    /// <summary>
-    /// Instance variable <c>price</c> represents the price value of the building.
-    /// </summary>
-    [SerializeField] private int price = 100;
+    public BuildingData buildingData;
 
     /// <summary>
     /// Static variable <c>ServerOnBuildingSpawned</c> is an action event declaration
@@ -57,7 +43,7 @@ public class Building : NetworkBehaviour
     /// <returns>The building preview <c>GameObject</c> of the building instance.</returns>
     public GameObject GetBuildingPreview()
     {
-        return buildingPreview;
+        return buildingData.buildingPreview;
     }
 
     /// <summary>
@@ -66,7 +52,7 @@ public class Building : NetworkBehaviour
     /// <returns>The building icon <c>Sprite</c> component of the building instance.</returns>
     public Sprite GetIcon()
     {
-        return icon;
+        return buildingData.icon;
     }
 
     /// <summary>
@@ -75,7 +61,7 @@ public class Building : NetworkBehaviour
     /// <returns>The building id integer value of the building instance.</returns>
     public int GetId()
     {
-        return id;
+        return buildingData.id;
     }
 
     /// <summary>
@@ -84,7 +70,7 @@ public class Building : NetworkBehaviour
     /// <returns>The building price integer value of the building instance.</returns>
     public int GetPrice()
     {
-        return price;
+        return buildingData.price;
     }
 
     #region Server

@@ -10,7 +10,7 @@ public class UnitBase : NetworkBehaviour
     /// <summary>
     /// Instance variable <c>health</c> is a Mirror <c>Health</c> component script representing the health manager of the unit base building.
     /// </summary>
-    [SerializeField] private Health health;
+    private Health _health;
 
     /// <summary>
     /// Static variable <c>ServerOnBaseSpawned</c> is an action event declaration
@@ -29,7 +29,15 @@ public class UnitBase : NetworkBehaviour
     /// for server side functions taking Mirror <c>UnitBase</c> parameter input and triggered by a unit base destroy event.
     /// </summary>
     public static event Action<UnitBase> ServerOnBaseDestroyed;
-    
+
+    /// <summary>
+    /// This function is called when the script instance is being loaded.
+    /// </summary>
+    private void Awake()
+    {
+        _health = GetComponent<Health>();
+    }
+
     #region Server
     
     /// <summary>
@@ -37,7 +45,7 @@ public class UnitBase : NetworkBehaviour
     /// </summary>
     public override void OnStartServer()
     {
-        health.ServerOnDeath += ServerHandleDeath;
+        _health.ServerOnDeath += ServerHandleDeath;
         
         ServerOnBaseSpawned?.Invoke(this);
     }
@@ -49,7 +57,7 @@ public class UnitBase : NetworkBehaviour
     {
         ServerOnBaseDestroyed?.Invoke(this);
         
-        health.ServerOnDeath -= ServerHandleDeath;
+        _health.ServerOnDeath -= ServerHandleDeath;
     }
     
     /// <summary>

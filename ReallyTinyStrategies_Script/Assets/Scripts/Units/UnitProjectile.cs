@@ -1,4 +1,3 @@
-using System;
 using Mirror;
 using UnityEngine;
 
@@ -10,22 +9,28 @@ public class UnitProjectile : NetworkBehaviour
     /// <summary>
     /// Instance variable <c>damageToDeal</c> represents the damage value dealt by the projectile on collision.
     /// </summary>
-    [SerializeField] private int damageToDeal;
+    private int _damageToDeal;
     
     /// <summary>
     /// Instance variable <c>destroyAfterSeconds</c> represents the lifespan value in seconds of the projectile.
     /// </summary>
-    [SerializeField] private float destroyAfterSeconds = 5.0f;
+    private float _destroyAfterSeconds = 5.0f;
     
     /// <summary>
     /// Instance variable <c>launchForce</c> represents the force magnitude of the projectile launch on spawn.
     /// </summary>
-    [SerializeField] private float launchForce = 10.0f;
+    private float _launchForce = 10.0f;
         
     /// <summary>
     /// Instance variable <c>rigidbody</c> is a Unity <c>RigidBody</c> component representing the rigidbody of the game object instance.
     /// </summary>
     private Rigidbody _rigidbody;
+    public void InitiliazeStats(UnitData unitData)
+    {
+        _damageToDeal = unitData.damageToDeal;
+        _destroyAfterSeconds = unitData.destroyAfterSeconds;
+        _launchForce = unitData.launchForce;
+    }
 
     /// <summary>
     /// This function is called on the frame when a script is enabled just before any of the Update methods are called the first time.
@@ -33,7 +38,7 @@ public class UnitProjectile : NetworkBehaviour
     private void Start()
     {
         _rigidbody = GetComponent<Rigidbody>();
-        _rigidbody.velocity = transform.forward * launchForce;
+        _rigidbody.velocity = transform.forward * _launchForce;
     }
 
     /// <summary>
@@ -41,7 +46,7 @@ public class UnitProjectile : NetworkBehaviour
     /// </summary>
     public override void OnStartServer()
     {
-        Invoke(nameof(DestroySelf), destroyAfterSeconds);
+        Invoke(nameof(DestroySelf), _destroyAfterSeconds);
     }
 
     /// <summary>
@@ -60,7 +65,7 @@ public class UnitProjectile : NetworkBehaviour
 
             if (other.TryGetComponent(out Health health))
             {
-                health.DealDamage(damageToDeal);
+                health.DealDamage(_damageToDeal);
             }
             
             DestroySelf();

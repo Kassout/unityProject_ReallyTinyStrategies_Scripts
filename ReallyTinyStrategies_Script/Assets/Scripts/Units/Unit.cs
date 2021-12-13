@@ -6,28 +6,32 @@ using UnityEngine.Events;
 /// <summary>
 /// Class <c>Unit</c> is a Mirror component script used to manage the general player unit object behaviour.
 /// </summary>
+[RequireComponent(typeof(Health))]
 public class Unit : NetworkBehaviour
 {
-    /// <summary>
-    /// Instance variable <c>resourceCost</c> represents the resource cost value of the unit for his generation at unit spawner.
-    /// </summary>
-    [SerializeField] private int resourceCost = 10;
+    public UnitData unitData;
+
+    [HideInInspector] public Animator animator;
     
     /// <summary>
     /// Instance variable <c>health</c> is a Mirror <c>Health</c> component script representing the health manager of the player unit.
     /// </summary>
-    [SerializeField] private Health health;
+    private Health _health;
     
     /// <summary>
     /// Instance variable <c>unitMovement</c> is a Mirror <c>UnitMovement</c> component script representing the player unit movement manager.
     /// </summary>
-    [SerializeField] private UnitMovement unitMovement;
+    private UnitMovement _unitMovement;
 
     /// <summary>
     /// Instance variable <c>targeter</c> is a Mirror <c>Targeter</c> component script representing the player unit targeter behaviour manager.
     /// </summary>
-    [SerializeField] private Targeter targeter;
-    
+    private Targeter _targeter;
+
+    public bool deadFlag;
+
+    #region Events
+
     /// <summary>
     /// Instance variable <c>onSelected</c> is a Unity event base executing actions based on unit selection trigger.
     /// </summary>
@@ -62,13 +66,26 @@ public class Unit : NetworkBehaviour
     /// </summary>
     public static event Action<Unit> AuthorityOnUnitDestroy;
 
+    #endregion
+    
+    /// <summary>
+    /// This function is called when the script instance is being loaded.
+    /// </summary>
+    private void Awake()
+    {
+        _health = GetComponent<Health>();
+        _targeter = GetComponent<Targeter>();
+        _unitMovement = GetComponent<UnitMovement>();
+        animator = GetComponentInChildren<Animator>();
+    }
+
     /// <summary>
     /// Accessor of the resourceCost attribute.
     /// </summary>
     /// <returns>The integer value of the unit resource cost.</returns>
     public int GetResourceCost()
     {
-        return resourceCost;
+        return unitData.resourceCost;
     }
     
     /// <summary>
@@ -77,7 +94,7 @@ public class Unit : NetworkBehaviour
     /// <returns>The <c>UnitMovement</c> component of the unit instance.</returns>
     public UnitMovement GetUnitMovement()
     {
-        return unitMovement;
+        return _unitMovement;
     }
 
     /// <summary>
@@ -86,7 +103,7 @@ public class Unit : NetworkBehaviour
     /// <returns>The <c>Targeter</c> component of the unit instance.</returns>
     public Targeter GetTargeter()
     {
-        return targeter;
+        return _targeter;
     }
     
     #region Server
@@ -98,7 +115,7 @@ public class Unit : NetworkBehaviour
     {
         ServerOnUnitSpawned?.Invoke(this);
         
-        health.ServerOnDeath += ServerHandleDeath;
+        _health.ServerOnDeath += ServerHandleDeath;
     }
 
     /// <summary>
@@ -106,7 +123,7 @@ public class Unit : NetworkBehaviour
     /// </summary>
     public override void OnStopServer()
     {
-        health.ServerOnDeath -= ServerHandleDeath;
+        _health.ServerOnDeath -= ServerHandleDeath;
         
         ServerOnUnitDestroy?.Invoke(this);
     }
@@ -117,9 +134,18 @@ public class Unit : NetworkBehaviour
     [Server]
     private void ServerHandleDeath()
     {
-        NetworkServer.Destroy(gameObject);
+        if (!deadFlag)
+        {
+            deadFlag = true;
+            animator.CrossFade("Death", 0.2f);
+        }
     }
 
+    public void TriggerDeath()
+    {
+        NetworkServer.Destroy(gameObject);
+    }
+    
     #endregion
 
     #region Client

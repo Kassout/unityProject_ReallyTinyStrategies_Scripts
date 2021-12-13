@@ -4,12 +4,13 @@ using UnityEngine.UI;
 /// <summary>
 /// Class <c>HealthUI</c> is a Unity component script used to manage the player units health UI element.
 /// </summary>
+[RequireComponent(typeof(Health))]
 public class HealthUI : MonoBehaviour
 {
     /// <summary>
     /// Instance variable <c>health</c> is a Mirror <c>Health</c> component representing the health manager of the player unit.
     /// </summary>
-    [SerializeField] private Health health;
+    private Health _health;
     
     /// <summary>
     /// Instance variable <c>healthBarParent</c> is a Unity <c>GameObject</c> object representing the health UI element.
@@ -26,7 +27,9 @@ public class HealthUI : MonoBehaviour
     /// </summary>
     private void Awake()
     {
-        health.ClientOnHealthUpdated += HandleHealthUpdated;
+        _health = GetComponent<Health>();
+        
+        _health.ClientOnHealthUpdated += HandleHealthUpdated;
     }
 
     /// <summary>
@@ -34,7 +37,7 @@ public class HealthUI : MonoBehaviour
     /// </summary>
     private void OnDestroy()
     {
-        health.ClientOnHealthUpdated -= HandleHealthUpdated;
+        _health.ClientOnHealthUpdated -= HandleHealthUpdated;
     }
 
     /// <summary>

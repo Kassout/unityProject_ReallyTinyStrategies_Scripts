@@ -6,28 +6,40 @@ using UnityEngine.AI;
 /// Class <c>UnitMovement</c> is a Mirror component script used to manage the player unit movement with the networking aspects of the game.
 /// </summary>
 [RequireComponent(typeof(NavMeshAgent))]
-public class UnitMovement : NetworkBehaviour
+public abstract class UnitMovement : NetworkBehaviour
 {
     /// <summary>
     /// Instance variable <c>agent</c> is a Unity <c>NavMeshAgent</c> component representing the navigation meshing agent of the player character.
     /// </summary>
-    [SerializeField] private NavMeshAgent agent;
+    protected NavMeshAgent agent;
 
     /// <summary>
     /// Instance variable <c>targeter</c> is a Mirror <c>Targeter</c> component script representing the targeter behaviour manager of the player unit.
     /// </summary>
-    [SerializeField] private Targeter targeter;
+    protected Targeter targeter;
 
     /// <summary>
     /// Instance variable <c>chaseRange</c> represents the maximum range value a unit will follow a target.
     /// </summary>
-    [SerializeField] private float chaseRange = 10f;
+    protected float chaseRange = 10f;
 
     /// <summary>
     /// Instance variable <c>animator</c> is a Unity <c>Animator</c> component representing the unit animator.
     /// </summary>
-    [SerializeField] private Animator animator;
-    
+    private Animator _animator;
+
+    /// <summary>
+    /// This function is called when the script instance is being loaded.
+    /// </summary>
+    private void Awake()
+    {
+        agent = GetComponent<NavMeshAgent>();
+        targeter = GetComponent<Targeter>();
+        _animator = GetComponentInChildren<Animator>();
+
+        chaseRange = GetComponent<Unit>().unitData.chaseRange;
+    }
+
     #region Server
 
     /// <summary>
@@ -52,31 +64,22 @@ public class UnitMovement : NetworkBehaviour
     [ServerCallback]
     private void Update()
     {
-        if (targeter.GetTarget())
+        if (!GetComponent<Unit>().deadFlag)
         {
-            if ((targeter.GetTarget().transform.position - transform.position).sqrMagnitude > chaseRange * chaseRange)
+            if (targeter.GetTarget())
             {
-                agent.SetDestination(targeter.GetTarget().transform.position);
-            } 
-            else if (agent.hasPath)
-            {   
-                agent.ResetPath();
+                if ((targeter.GetTarget().transform.position - transform.position).sqrMagnitude > chaseRange * chaseRange)
+                {
+                    agent.SetDestination(targeter.GetTarget().transform.position);
+                } 
+                else if (agent.hasPath)
+                {   
+                    agent.ResetPath();
+                }
             }
-            
-            return;
-        }
-
-        if (agent.hasPath)
-        {
-            return;
-        }
         
-        if (agent.remainingDistance > agent.stoppingDistance)
-        {
-            return;
+            GetComponent<Unit>().animator.SetFloat("velocityMagnitude", agent.velocity.magnitude);
         }
-        
-        agent.ResetPath();
     }
 
     /// <summary>
@@ -88,24 +91,13 @@ public class UnitMovement : NetworkBehaviour
     {
         ServerMove(position);
     }
-    
+
     /// <summary>
     /// This server-side function is responsible for moving units on the terrain.
     /// </summary>
     /// <param name="position">A Unity <c>Vector</c> component representing the position to move the unit on.</param>
-    [Server]
-    public void ServerMove(Vector3 position)
-    {
-        targeter.ClearTarget();
-        
-        if (!NavMesh.SamplePosition(position, out NavMeshHit hit, 1f, NavMesh.AllAreas))
-        {
-            return;
-        }
-
-        agent.SetDestination(hit.position);
-    }
-
+    public abstract void ServerMove(Vector3 position);
+    
     /// <summary>
     /// This server side function is responsible for resetting all agent paths on game over event trigger.
     /// </summary>

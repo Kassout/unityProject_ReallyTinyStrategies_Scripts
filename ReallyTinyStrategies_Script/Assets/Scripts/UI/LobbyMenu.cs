@@ -24,6 +24,8 @@ public class LobbyMenu : MonoBehaviour
     /// Instance variable <c>playerNameTexts</c> is a list of Unity <c>TMP_Text</c> components representing the different player name texts UI elements.
     /// </summary>
     [SerializeField] private TMP_Text[] playerNameTexts = new TMP_Text[4];
+
+    public int minimumPlayerToPlay;
     
     /// <summary>
     /// This function is called on the frame when a script is enabled just before any of the Update methods are called the first time.
@@ -67,7 +69,7 @@ public class LobbyMenu : MonoBehaviour
             playerNameTexts[i].text = "Waiting for Player...";
         }
 
-        startGameButton.interactable = players.Count >= 2;
+        startGameButton.interactable = players.Count >= minimumPlayerToPlay;
     }
 
     /// <summary>
