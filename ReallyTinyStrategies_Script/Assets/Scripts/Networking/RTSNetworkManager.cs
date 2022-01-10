@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Mirror;
+using Steamworks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
@@ -48,6 +49,24 @@ public class RTSNetworkManager : NetworkManager
     public List<RTSPlayer> players { get; } = new List<RTSPlayer>();
     
     #region Server
+    
+    #if !UNITY_EDITOR
+    public bool IsUsingSteam()
+    {
+        return transport.GetType() == typeof(Mirror.FizzySteam.FizzySteamworks);
+    }
+
+    public override void OnApplicationQuit()
+    {
+        base.OnApplicationQuit();
+        if (IsUsingSteam()) SteamAPI.Shutdown();
+    }
+    #endif
+
+    public override void Awake()
+    {
+        base.Awake();
+    }
 
     /// <summary>
     /// This function is called on the server when a new client connects.

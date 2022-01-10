@@ -33,7 +33,7 @@ public class MainMenu : MonoBehaviour
     /// Instance variable <c>lobbyEntered</c> is a Steamworks <c>Callback</c> class representing the action context structure of <c>LobbyEnter_t</c> event triggered.
     /// </summary>
     protected Callback<LobbyEnter_t> lobbyEntered;
-
+    
     /// <summary>
     /// This function is called on the frame when a script is enabled just before any of the Update methods are called the first time.
     /// </summary>
